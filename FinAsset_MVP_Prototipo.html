@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FinAsset · Prototipo del MVP</title>
+<style>
+:root{
+  --navy:#0F2A4A; --green:#14806A; --mint:#D9F4EC; --ink:#1E2B3A; --muted:#5B6B7C;
+  --line:#E3E7EC; --light:#F3F6F9; --amber:#8A5A00; --sky:#7FA7D9; --amber-bg:#FFF6E0;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,"Segoe UI",Arial,sans-serif;color:var(--ink);background:#E9EDF2;min-height:100vh;display:flex;gap:40px;align-items:flex-start;justify-content:center;padding:32px 16px}
+.side{width:260px;display:flex;flex-direction:column;gap:12px;padding-top:8px}
+.side h1{margin:0;font-size:22px;color:var(--navy)}
+.side p{margin:0;font-size:13px;color:var(--muted);line-height:1.45}
+.side .jump{display:flex;flex-direction:column;gap:6px}
+.side button{min-height:40px;text-align:left;padding:0 12px;border-radius:10px;border:2px solid var(--line);background:#fff;font:inherit;font-size:13px;color:var(--ink);cursor:pointer}
+.side button:hover{border-color:var(--green)}
+.side .reset{border-color:var(--amber);color:var(--amber)}
+.phone{width:390px;height:844px;border-radius:44px;border:10px solid #111;background:#fff;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(15,42,74,.25);flex:none}
+header{padding:28px 20px 16px;background:var(--navy);color:#fff;display:flex;flex-direction:column;gap:6px}
+header .sub{margin:0;font-size:13px;color:#B9CBE4}
+header .big{margin:0;font-size:24px;font-weight:700}
+header .hint{margin:0;font-size:13px;color:var(--mint)}
+main{flex:1;min-height:0;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px}
+h2{margin:0;font-size:15px;color:var(--navy)}
+.card{background:var(--light);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.card.mint{background:var(--mint)}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.t{margin:0;font-size:14px}
+.b{font-weight:700}.s{font-size:12px;color:var(--muted)}.n{color:var(--navy)}
+.bar{height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+.bar>div{height:100%;border-radius:5px;background:var(--green);transition:width .3s}
+.bar.warn>div{background:var(--amber)}
+.alert{margin:0;font-size:13px;font-weight:600;color:var(--amber);background:var(--amber-bg);padding:10px 12px;border-radius:10px}
+.btn{min-height:48px;border-radius:12px;border:2px solid var(--green);background:var(--green);color:#fff;font:inherit;font-size:15px;font-weight:700;cursor:pointer;width:100%}
+.btn.sec{background:#fff;color:var(--green)}
+.btn.small{min-height:40px;font-size:13px;width:auto;padding:0 14px}
+.spacer{flex:1}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label,.field .lbl{font-size:13px;font-weight:600;color:var(--muted)}
+.field input{min-height:48px;border:2px solid var(--line);border-radius:10px;padding:0 12px;font:inherit;font-size:15px;color:var(--ink)}
+.field input:focus{outline:none;border-color:var(--green)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:44px;padding:0 14px;border-radius:22px;border:2px solid var(--line);background:#fff;font:inherit;font-size:13px;color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--green);background:var(--mint);font-weight:700}
+.donutwrap{display:flex;gap:16px;align-items:center}
+.donut{width:120px;height:120px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center}
+.donut::after{content:"";width:68px;height:68px;border-radius:50%;background:#fff}
+.legend{display:flex;flex-direction:column;gap:6px}
+.legend p{margin:0;font-size:13px;display:flex;align-items:center;gap:8px}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+.item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:2px solid var(--light)}
+nav{display:flex;border-top:2px solid var(--line);background:#fff}
+nav button{flex:1;min-height:60px;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font:inherit;font-size:11px;color:var(--muted);cursor:pointer}
+nav button .ic{width:22px;height:22px;border-radius:6px;background:var(--line)}
+nav button[aria-current="page"]{color:var(--green);font-weight:700}
+nav button[aria-current="page"] .ic{background:var(--green)}
+.err{margin:0;font-size:12px;color:#B3261E}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 18px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none}
+.toast.on{opacity:1}
+@media (max-width:760px){.side{display:none}body{padding:0}.phone{border:0;border-radius:0;width:100%;height:100vh;box-shadow:none}}
+</style>
+</head>
+<body>
+<aside class="side">
+  <h1>FinAsset · MVP</h1>
+  <p>Prototipo navegable. Los datos son de ejemplo y se reinician al recargar la página.</p>
+  <p><b>Prueba:</b> registra un gasto, crea una cajita, aporta a una meta o cambia el presupuesto: todo se actualiza.</p>
+  <div class="jump" id="jump"></div>
+  <button class="reset" type="button" id="reset">Reiniciar datos de ejemplo</button>
+</aside>
+
+<div class="phone" id="phone"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const CATS = {Comida:'#14806A', Transporte:'#0F2A4A', Salidas:'#7FA7D9', Estudio:'#8A5A00', Otros:'#B8C2CC'};
+const fmt = n => '$' + Math.round(n).toLocaleString('es-CO');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function seed(){
+  return {
+    user:'Anita',
+    gastos:[
+      {d:'Almuerzo',c:'Comida',m:18000,f:'16 nov'},
+      {d:'TransMilenio',c:'Transporte',m:3200,f:'16 nov'},
+      {d:'Cine',c:'Salidas',m:22000,f:'15 nov'},
+      {d:'Mercado',c:'Comida',m:238000,f:'10 nov'},
+      {d:'Recarga tarjeta',c:'Transporte',m:156800,f:'3 nov'},
+      {d:'Salidas con amigos',c:'Salidas',m:106000,f:'8 nov'},
+      {d:'Fotocopias y libros',c:'Estudio',m:40000,f:'5 nov'},
+      {d:'Varios',c:'Otros',m:56000,f:'2 nov'}
+    ],
+    presupuesto:{Comida:280000,Transporte:200000,Salidas:160000,Estudio:60000,Otros:100000},
+    cajitas:[
+      {n:'Emergencia',meta:300000,ah:120000,per:'Semanal',ap:15000},
+      {n:'Ropa',meta:150000,ah:45000,per:'Mensual',ap:20000},
+      {n:'Ahorro mensual',meta:100000,ah:80000,per:'Mensual',ap:100000},
+      {n:'Viaje (meta propia)',meta:1000000,ah:200000,per:'Mensual',ap:80000}
+    ]
+  };
+}
+let S = seed();
+let screen = 'inicio', periodo = 'Mes', tmp = {};
+
+const total = () => S.gastos.reduce((a,g)=>a+g.m,0);
+const porCat = () => { const o={}; Object.keys(CATS).forEach(k=>o[k]=0); S.gastos.forEach(g=>o[g.c]+=g.m); return o; };
+const presTotal = () => Object.values(S.presupuesto).reduce((a,b)=>a+b,0);
+const pct = (a,b) => b ? Math.min(100, Math.round(a/b*100)) : 0;
+
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),1800); }
+
+function head(sub,big,hint){ return `<header><p class="sub">${sub}</p><p class="big">${big}</p>${hint?`<p class="hint">${hint}</p>`:''}</header>`; }
+function navbar(){
+  const tabs=[['inicio','Inicio'],['gastos','Gastos'],['cajitas','Cajitas'],['presupuesto','Presupuesto']];
+  return `<nav aria-label="Navegación principal">${tabs.map(([k,l])=>`<button type="button" data-go="${k}" ${screen===k?'aria-current="page"':''}><span class="ic" aria-hidden="true"></span>${l}</button>`).join('')}</nav>`;
+}
+function donut(){
+  const pc=porCat(), tot=total()||1; let acc=0; const stops=[];
+  Object.entries(pc).forEach(([k,v])=>{ if(!v) return; const a=acc/tot*100; acc+=v; stops.push(`${CATS[k]} ${a}% ${acc/tot*100}%`); });
+  const legend=Object.entries(pc).filter(([,v])=>v).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<p><span class="sw" style="background:${CATS[k]}"></span>${k} ${Math.round(v/tot*100)} %</p>`).join('');
+  return `<div class="donutwrap"><div class="donut" role="img" aria-label="Gastos por categoría" style="background:conic-gradient(${stops.join(',')||'#E3E7EC 0 100%'})"></div><div class="legend">${legend}</div></div>`;
+}
+function catMayor(){ const e=Object.entries(porCat()).sort((a,b)=>b[1]-a[1])[0]; return e && e[1] ? e[0] : null; }
+function alertasPres(){ return Object.entries(S.presupuesto).filter(([k,v])=>v && porCat()[k]/v>=0.9).map(([k])=>k); }
+
+const V = {
+  inicio(){
+    const quedan = presTotal()-total();
+    return head(`Hola, ${S.user}`, `Gastado este mes: ${fmt(total())}`, quedan>=0?`Te quedan ${fmt(quedan)} del presupuesto`:`Te pasaste ${fmt(-quedan)} del presupuesto`)
+    + `<main><h2>¿En qué se va tu plata?</h2>${donut()}<h2>Últimos gastos</h2>`
+    + S.gastos.slice(0,4).map(g=>`<div class="item"><div><p class="t b">${esc(g.d)}</p><p class="t s">${g.c} · ${g.f}</p></div><p class="t b">${fmt(g.m)}</p></div>`).join('')
+    + `<div class="spacer"></div><button class="btn" type="button" data-go="registrar">+ Registrar gasto</button></main>` + navbar();
+  },
+  registrar(){
+    tmp.cat = tmp.cat || 'Comida';
+    return head('Nuevo gasto','Registrar gasto')
+    + `<main><div class="field"><label for="m">Monto (COP)</label><input id="m" inputmode="numeric" placeholder="Ej. 18000" value="${tmp.m||''}"></div>
+      <div class="field"><span class="lbl" id="catl">Categoría</span><div class="chips" role="group" aria-labelledby="catl">${Object.keys(CATS).map(c=>`<button type="button" class="chip" data-cat="${c}" aria-pressed="${tmp.cat===c}">${c}</button>`).join('')}</div></div>
+      <div class="field"><label for="d">Descripción</label><input id="d" placeholder="Ej. Almuerzo en la U" value="${esc(tmp.d||'')}"></div>
+      <p class="err" id="err"></p><div class="spacer"></div>
+      <button class="btn" type="button" id="guardar">Guardar gasto</button>
+      <button class="btn sec" type="button" data-go="inicio">Cancelar</button></main>`;
+  },
+  gastos(){
+    const pc=porCat(), tot=total()||1, may=catMayor();
+    return head('Noviembre',`Tus gastos: ${fmt(total())}`)
+    + `<main><div class="chips" role="group" aria-label="Periodo">${['Semana','Mes','Año'].map(p=>`<button type="button" class="chip" data-per="${p}" aria-pressed="${periodo===p}">${p}</button>`).join('')}</div>
+      ${periodo!=='Mes'?`<p class="t s">En el MVP solo se muestra el mes; la vista por ${periodo.toLowerCase()} queda para la siguiente versión.</p>`:''}
+      <h2>Por categoría</h2>`
+    + Object.entries(pc).filter(([,v])=>v).sort((a,b)=>b[1]-a[1]).map(([k,v])=>{ const p=Math.round(v/tot*100); return `<div class="card"><div class="row"><p class="t b">${k}</p><p class="t b">${fmt(v)}</p></div><div class="bar"><div style="width:${p}%;background:${CATS[k]}"></div></div><p class="t s">${p} % del total</p></div>`; }).join('')
+    + (may?`<p class="alert">${may} es tu mayor gasto este mes.</p>`:'')
+    + `</main>` + navbar();
+  },
+  cajitas(){
+    const tot=S.cajitas.reduce((a,c)=>a+c.ah,0);
+    return head('Cajitas de ahorro',`Ahorrado: ${fmt(tot)}`)
+    + `<main>` + S.cajitas.map((c,i)=>{ const p=pct(c.ah,c.meta); return `<div class="card ${i===0?'mint':''}"><div class="row"><p class="t b n">${esc(c.n)}</p><p class="t b" style="color:var(--green)">${p} %</p></div><div class="bar"><div style="width:${p}%"></div></div><div class="row"><p class="t s">${fmt(c.ah)} de ${fmt(c.meta)} · ${c.per.toLowerCase()} ${fmt(c.ap)}</p><button type="button" class="btn sec small" data-aportar="${i}" ${p>=100?'disabled':''}>${p>=100?'¡Lista!':'Aportar'}</button></div></div>`; }).join('')
+    + `<div class="spacer"></div><button class="btn" type="button" data-go="nuevaCajita">+ Nueva cajita</button></main>` + navbar();
+  },
+  nuevaCajita(){
+    tmp.per = tmp.per || 'Semanal';
+    const meta=+tmp.meta||0, ap=+tmp.ap||0, n=ap?Math.ceil(meta/ap):0;
+    return head('Cajitas de ahorro','Crear cajita')
+    + `<main><div class="field"><label for="cn">Nombre</label><input id="cn" placeholder="Ej. Emergencia" value="${esc(tmp.n||'')}"></div>
+      <div class="field"><label for="cm">Meta (COP)</label><input id="cm" inputmode="numeric" placeholder="Ej. 300000" value="${tmp.meta||''}"></div>
+      <div class="field"><span class="lbl" id="perl">¿Cada cuánto apartas?</span><div class="chips" role="group" aria-labelledby="perl">${['Semanal','Mensual'].map(p=>`<button type="button" class="chip" data-cper="${p}" aria-pressed="${tmp.per===p}">${p}</button>`).join('')}</div></div>
+      <div class="field"><label for="ca">Aporte (COP)</label><input id="ca" inputmode="numeric" placeholder="Ej. 15000" value="${tmp.ap||''}"></div>
+      <div class="card mint"><p class="t b n" id="calc">${n?`Con este aporte llegas a tu meta en ${n} ${tmp.per==='Semanal'?(n===1?'semana':'semanas'):(n===1?'mes':'meses')}.`:'Escribe la meta y el aporte para calcular el tiempo.'}</p></div>
+      <p class="err" id="err"></p><div class="spacer"></div>
+      <button class="btn" type="button" id="crear">Crear cajita</button>
+      <button class="btn sec" type="button" data-go="cajitas">Cancelar</button></main>`;
+  },
+  presupuesto(){
+    const pc=porCat(), pt=presTotal(), p=pct(total(),pt), al=alertasPres();
+    return head('Presupuesto de noviembre',`${fmt(total())} de ${fmt(pt)}`)
+    + `<main><div class="card mint"><div class="row"><p class="t" style="color:var(--muted);font-weight:600">Usado</p><p class="t b n">${p} %</p></div><div class="bar ${p>=90?'warn':''}"><div style="width:${p}%"></div></div><p class="t">${pt-total()>=0?`Te quedan ${fmt(pt-total())} para 14 días`:`Te pasaste ${fmt(total()-pt)}`}</p></div>
+      <h2>Por categoría</h2>`
+    + Object.entries(S.presupuesto).map(([k,v])=>{ const q=pct(pc[k],v); return `<div class="card"><div class="row"><p class="t b">${k}</p><p class="t b" style="color:${q>=90?'var(--amber)':'var(--green)'}">${q} %</p></div><div class="bar ${q>=90?'warn':''}"><div style="width:${q}%"></div></div><div class="row"><p class="t s">${fmt(pc[k])} de</p><input aria-label="Límite de ${k}" data-lim="${k}" inputmode="numeric" value="${v}" style="width:120px;min-height:36px;border:2px solid var(--line);border-radius:8px;padding:0 8px;font:inherit;font-size:13px;text-align:right"></div></div>`; }).join('')
+    + al.map(k=>`<p class="alert">Estás cerca del límite en ${k}.</p>`).join('')
+    + `<p class="t s">Toca un límite para editarlo.</p></main>` + navbar();
+  }
+};
+
+function render(){
+  document.getElementById('phone').innerHTML = V[screen]();
+  const names={inicio:'1 · Inicio',registrar:'2 · Registrar gasto',gastos:'3 · Gastos por categoría',cajitas:'4 · Cajitas de ahorro',nuevaCajita:'5 · Nueva cajita',presupuesto:'6 · Presupuesto mensual'};
+  document.getElementById('jump').innerHTML = Object.entries(names).map(([k,l])=>`<button type="button" data-go="${k}" ${screen===k?'style="border-color:var(--green);font-weight:700"':''}>${l}</button>`).join('');
+}
+function go(s){ screen=s; tmp={}; render(); document.querySelector('main') && (document.querySelector('main').scrollTop=0); }
+const num = v => +String(v).replace(/[^\d]/g,'');
+
+document.addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.go) return go(b.dataset.go);
+  if(b.id==='reset'){ S=seed(); go('inicio'); return toast('Datos de ejemplo reiniciados'); }
+  if(b.dataset.cat){ tmp.m=document.getElementById('m').value; tmp.d=document.getElementById('d').value; tmp.cat=b.dataset.cat; return render(); }
+  if(b.dataset.per){ periodo=b.dataset.per; return render(); }
+  if(b.dataset.cper){ tmp.n=document.getElementById('cn').value; tmp.meta=num(document.getElementById('cm').value)||''; tmp.ap=num(document.getElementById('ca').value)||''; tmp.per=b.dataset.cper; return render(); }
+  if(b.id==='guardar'){
+    const m=num(document.getElementById('m').value), d=document.getElementById('d').value.trim()||tmp.cat;
+    if(!m) return document.getElementById('err').textContent='Escribe un monto mayor a cero.';
+    S.gastos.unshift({d,c:tmp.cat,m,f:'Hoy'}); go('inicio');
+    const al=alertasPres(); return toast(al.length?`Gasto guardado · ojo con ${al[0]}`:'Gasto guardado');
+  }
+  if(b.id==='crear'){
+    const n=document.getElementById('cn').value.trim(), meta=num(document.getElementById('cm').value), ap=num(document.getElementById('ca').value);
+    if(!n||!meta||!ap) return document.getElementById('err').textContent='Completa el nombre, la meta y el aporte.';
+    S.cajitas.push({n,meta,ah:0,per:tmp.per,ap}); go('cajitas'); return toast(`Cajita "${n}" creada`);
+  }
+  if(b.dataset.aportar){
+    const c=S.cajitas[+b.dataset.aportar]; c.ah=Math.min(c.meta,c.ah+c.ap); render();
+    return toast(c.ah>=c.meta?`¡Completaste la cajita ${c.n}!`:`Aportaste ${fmt(c.ap)} a ${c.n}`);
+  }
+});
+document.addEventListener('input', e=>{
+  if(screen==='nuevaCajita' && ['cm','ca'].includes(e.target.id)){
+    const meta=num(document.getElementById('cm').value), ap=num(document.getElementById('ca').value), n=ap?Math.ceil(meta/ap):0;
+    const per=tmp.per||'Semanal';
+    document.getElementById('calc').textContent = n&&meta ? `Con este aporte llegas a tu meta en ${n} ${per==='Semanal'?(n===1?'semana':'semanas'):(n===1?'mes':'meses')}.` : 'Escribe la meta y el aporte para calcular el tiempo.';
+  }
+});
+document.addEventListener('change', e=>{
+  if(e.target.dataset.lim){ S.presupuesto[e.target.dataset.lim]=num(e.target.value); render(); toast('Presupuesto actualizado'); }
+});
+render();
+</script>
+</body>
+</html>
